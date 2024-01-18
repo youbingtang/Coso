@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.RoleMapper">
+	<!-- 根据企业id和角色类型查询该公司下的所有角色 -->
+	<select id="findAllRoleByCidAndType" parameterType="map" resultType="map">
+		select *
+		from role
+		where companyId=#{cid} AND type=#{type} AND isDel=0
+	</select>
+	
+	<!-- 查询管理员对应的权限 -->
+	<select id="findrole" resultType="map" parameterType="int">
+		SELECT id,showText as name
+		FROM authority
+		WHERE id in (
+		SELECT authorityId
+		FROM authorityroleref
+		WHERE roleid=(
+		SELECT id 
+		FROM role
+		WHERE  type=1 and companyId =#{cid}))AND type=1
+	</select>
+	
+	<!-- 修改员工对应的角色 -->
+	<update id="updatecompanyrole" parameterType="map">
+		UPDATE roleaccountref
+		SET roleId =#{roleId}
+		WHERE accountId=(
+		SELECT id 
+		FROM account
+		WHERE account=#{account}
+		)	
+	</update>
+	
+	<!--  添加角色-->
+	<!--查询添加人详细信息-->
+	<select id="findmsg" resultType="map" parameterType="String">
+		SELECT name,id,companyId
+		FROM account
+		WHERE account=#{account}
+	</select>
+	
+	<!--向角色表中添加信息-->
+	<insert id="insertmsgtorole" parameterType="map" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO role(name,type,createDate,createUserId,createUserName,isDel,version,companyId)
+		VALUES(#{name},2,CURRENT_DATE,#{createUserId},#{createUserName},0,1,#{companyId})
+	</insert>
+	
+	<!--向权限角色关联关系表中添加信息-->
+	<insert id="insertmsgtoauthorityRoleRef" parameterType="map">
+		INSERT INTO authorityroleref(authorityId,roleId,createDate,createUserId,createUserName)
+		VALUES(#{authorityId},#{roleId},CURRENT_DATE,#{createUserId},#{createUserName})
+	</insert>
+	
+	<!--删除角色-->
+	<update id="delrole" parameterType="int">
+		UPDATE role
+		SET isDel=1
+		WHERE id = #{id}
+	</update>
+	
+	<!--修改角色权限-->
+	<!--更新权限名称-->
+	<update id="updatename" parameterType="map">
+	    UPDATE role
+		SET name=#{name}
+		WHERE id=#{id}
+	</update>
+	
+	<!--删除角色权限关联关系表中角色id为id的所以数据	-->
+	<delete id="deleteauthorityRoleRef" parameterType="int">
+		DELETE 
+		FROM authorityroleref
+		WHERE roleId =#{id}
+	</delete>
+	
+	<!--角色权限关联关系表中插入角色id为id，权限id为authorityid的N条数据-->
+	<insert id="insertauthorityRoleRef" parameterType="map">
+		INSERT INTO authorityroleref(authorityId,roleId)
+		VALUES (#{authorityid},#{roleId})
+	</insert>
+	<!-- test -->
+	<select id="findbyaccount" parameterType="String" resultType="map">
+		SELECT * 
+		FROM roleaccountref
+		WHERE accountId=(
+		select id from account where account="17309401554"
+		)
+	</select>
+	
+	<!-- 根据角色id查对应的权限 -->
+	<select id="findauthoritybyroid" parameterType="String" resultType="map">
+		select at.showtext,at.id
+		from authority as at,authorityroleref as ar
+		where ar.authorityId=at.id
+		and at.pid!=''
+		and ar.roleId=#{roleId}
+	</select>
+	<!-- 查询父级权限 -->
+	<select id="findfuji" parameterType="map" resultType="map">
+		SELECT DISTINCT pid 
+		FROM authority
+		WHERE id in <foreach collection="authorityId" item="id" open="(" close=")" separator=",">#{id}</foreach>
+	</select>
+	
+</mapper>

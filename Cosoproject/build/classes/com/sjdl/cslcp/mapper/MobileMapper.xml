@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sjdl.cslcp.mapper.MobileMapper">
+	<!-- 移动端登录验证 -->
+	<select id="loginFindcompanyIdByAccount" parameterType="String" resultType="map">
+	SELECT companyId
+	FROM account
+	WHERE account = #{account}
+	</select>
+	<!-- 移动端 查询当前账户拥有的公司名称，以及提单详细 -->
+	<select id="findSfangTidanByCompanyId" parameterType="String" resultType="map">
+	SELECT *
+	FROM bill_of_lading
+	WHERE (sendCompanyId = #{companyId}
+	OR receiveCompanyId = #{companyId}
+	OR signatureCompanyId = #{companyId})
+	AND (
+	CASE #{companyId}
+	WHEN sendCompanyId THEN scAuditStatus = 0
+	WHEN receiveCompanyId THEN rcAuditStatus = 0
+	WHEN signatureCompanyId THEN signatureAuditStatus = 0
+	END)
+	</select>
+	<!-- 查询该公司全部待审核提单 -->
+	<select id="findNameByCompanyIdForTidan" parameterType="String" resultType="String">
+	SELECT name
+	FROM company
+	WHERE id = #{companyId}
+	</select>
+
+</mapper>

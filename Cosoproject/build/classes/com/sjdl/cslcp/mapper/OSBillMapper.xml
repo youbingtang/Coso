@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.OSBillMapper">
+
+	<!-- 查询公司总数 -->
+	<select id="findAllCompany"
+		resultType="Map">
+		SELECT id 
+		FROM company
+	</select>
+	<!-- 查询用户总数 -->
+	<select id="findAllRole"
+		resultType="Map">
+		SELECT id 
+		FROM role
+	</select>
+	<!-- 查询出单总数 -->
+	<select id="findAllBill"
+		resultType="Map">
+		SELECT id 
+		FROM bill_of_lading
+	</select>
+	<!-- 查询待审核提单数 -->
+	<select id="findAllBillScAuditStatus"
+		resultType="Map">
+		SELECT id 
+		FROM bill_of_lading where scAuditStatus=0
+	</select>
+	<!-- 查询待付款提单数 -->
+	<select id="findAllBillFreightCharges"
+		resultType="Map">
+		SELECT id 
+		FROM bill_of_lading where freightCharges='Freight Collect'
+	</select>
+	<!-- 查询待审核总数 -->
+	<select id="findAllBillConfirmStatus"
+		resultType="Map">
+		SELECT id 
+		FROM seal where confirmStatus=0
+	</select>
+	<!-- 查询本月提单总数 -->
+	<select id="findAllBillSendBillDate"
+		resultType="Map">
+		SELECT * FROM bill_of_lading 
+		WHERE DATE_FORMAT( sendBillDate, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+	</select>
+	<!-- 查询签章总数 -->
+	<select id="findAllBillSignatureCompanyId"
+		resultType="Map">
+		SELECT id from bill_of_lading 
+	</select>
+	<!-- 查询提单总数 -->
+	<select id="findAllBillSendCompanyId"
+		resultType="Map">
+		SELECT id from bill_of_lading 
+	</select>
+	<!-- 查询企业名称、申请开通服务 -->
+	<select id="findCompanyAndBus"
+		resultType="Map">
+		SELECT c.name ,b.auditStatus ,b.applyDate from company c ,bus_apply b 
+		WHERE b.companyId=c.companyTypeId and b.auditStatus=0 
+	</select>
+	<!-- 查询企业名称、提单编号 -->
+	<select id="findCompanyAndBill"
+		resultType="Map">
+		SELECT c.name,b.blNO,b.sendBillDate FROM bill_of_lading b,company c 
+		WHERE b.sendCompanyId=c.companyTypeId LIMIT 10
+	</select>
+	<!-- 查询本月提单总数-->
+	<select id="findBillCurrent"
+		resultType="Map">
+		SELECT COUNT(id) FROM bill_of_lading
+		 WHERE DATE_FORMAT( sendBillDate, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+	</select>
+	<!-- 查询上月提单总数 -->
+	<select id="findBillLastCurrent"
+		resultType="Map">
+		 SELECT COUNT(id) FROM bill_of_lading
+		 WHERE PERIOD_DIFF( date_format( now( ) , '%Y%m' ) ,date_format( sendBillDate, '%Y%m' ) ) =1
+	</select>
+	<!-- 查询1月提单总数 -->
+	<select id="findBillOne"
+		resultType="Map">
+		SELECT id from bill_of_lading WHERE sendBillDate BETWEEN '2021-01-01' and '2021-01-31'
+	</select>
+	<!-- 查询2月提单总数 -->
+	<select id="findBillTwo"
+		resultType="Map">
+		SELECT id from bill_of_lading WHERE sendBillDate BETWEEN '2021-02-01' and '2021-02-31'
+	</select>
+	<!-- 查询3月提单总数 -->
+	<select id="findBillThree"
+		resultType="Map">
+		SELECT id from bill_of_lading WHERE sendBillDate BETWEEN '2021-03-01' and '2021-03-31'
+	</select>
+	<!-- 查询4月提单总数 -->
+	<select id="findBillFour"
+		resultType="Map">
+		SELECT id from bill_of_lading WHERE sendBillDate BETWEEN '2021-04-01' and '2021-04-31'
+	</select>
+	<!-- 查询5月提单总数 -->
+	<select id="findBillFive"
+		resultType="Map">
+		SELECT id from bill_of_lading WHERE sendBillDate BETWEEN '2021-05-01' and '2021-05-31'
+	</select>
+	<!-- 查询6月提单总数 -->
+	<select id="findBillSix"
+		resultType="Map">
+		SELECT id from bill_of_lading WHERE sendBillDate BETWEEN '2021-06-01' and '2021-06-31'
+	</select>
+	
+		
+</mapper>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.ProjectdataMapper">
+	
+	<!-- 查询所有表信息 -->
+	<select id="findAllProjectdata" resultType="Map">
+		SELECT
+		id,blId,type,cause,destruction,guarantee,applyCompanyName,applyUserAccount,applyUserName,applyDay,platformAuditResult,platformAuditOpinion,platformAuditUserAccount,platformAuditUserName,platformAuditDay,version
+		FROM bl_lnvalid_apply
+	</select>
+	
+	<!-- 根据账号查对应作废表信息 -->
+	<select id="findById" resultType="Map" parameterType="int">
+		SELECT
+		id,blId,type,cause,destruction,guarantee,applyCompanyName,applyUserAccount,applyUserName,applyDay,platformAuditResult,platformAuditOpinion,platformAuditUserAccount,platformAuditUserName,platformAuditDay,version
+		FROM bl_lnvalid_apply
+		WHERE id=#{id}
+	</select>
+	
+	<!-- 修改作废表信息 -->
+	<update id="edit" parameterType="Map">
+		UPDATE bl_lnvalid_apply
+		SET
+		blId=#{blId},
+		type=#{type},
+		cause=#{cause},
+		destruction=#{destruction},
+		guarantee=#{guarantee},
+		applyCompanyName=#{applyCompanyName},
+		applyUserAccount=#{applyUserAccount},
+		applyUserName=#{applyUserName},
+		applyDay=#{applyDay},
+		platformAuditResult=#{platformAuditResult},
+		platformAuditOpinion=#{platformAuditOpinion},
+		platformAuditUserAccount=#{platformAuditUserAccount},
+		platformAuditUserName=#{platformAuditUserName},
+		platformAuditDay=#{platformAuditDay},
+		version=#{version}
+		WHERE
+		id=#{id}
+	</update>
+	
+	<!-- 删除作废表信息 -->
+	<delete id="del" parameterType="int">
+		DELETE FROM bl_lnvalid_apply WHERE id = #{id}
+	</delete>
+	
+	<!-- 插入作废表信息 -->
+	<insert id="insertProjectdata" parameterType="Map">
+		INSERT INTO
+		bl_lnvalid_apply(
+		blId,type,cause,destruction,guarantee,applyCompanyName,applyUserAccount,applyUserName,applyDay,platformAuditResult,platformAuditOpinion,platformAuditUserAccount,platformAuditUserName,platformAuditDay,version)
+		VALUES
+		(#{blId},#{type},#{cause},#{destruction},#{guarantee},#{applyCompanyName},#{applyUserAccount},#{applyUserName},#{applyDay},#{platformAuditResult},#{platformAuditOpinion},#{platformAuditUserAccount},#{platformAuditUserName},#{platformAuditDay},#{version})
+	</insert>
+</mapper>

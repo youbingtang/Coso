@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.LoginMapper">
+	<!-- 登录验证 -->
+	<select id="findPassworrd" parameterType="String" resultType="map">
+		SELECT password,status,isDel FROM account WHERE account= #{account}
+	</select>
+	
+	<!-- 根据账号查对应账号权限 -->
+	<select id="findAuthority" parameterType="String" resultType="map">
+		<!-- SELECT a.name AS name,c.id AS cid,c.name AS cname,r.name AS rname
+		FROM account a,roleaccountref ro,role r,company c
+		WHERE a.id = ro.accountID 
+		AND c.adminAccountId = a.id
+		AND ro.roleID = r.id 
+		AND a.account=#{account} -->
+		SELECT a.name,a.companyId AS cid,c.name AS cname,r.name AS rname
+		FROM account AS a,company AS c,role as r 
+		WHERE account =#{account}
+		AND a.companyId=c.id
+		AND r.id=(
+		SELECT roleId
+		FROM roleaccountref
+		WHERE accountId =(
+		SELECT id
+		FROM  account
+		WHERE account=#{account}
+		)
+		)
+		
+		
+	</select>
+	
+	<select id="findAllAuthority" parameterType="String" resultType="map">
+		SELECT aa.id,aa.pid,aa.showText,aa.url,aa.icon
+		FROM account a,roleaccountref ro,role r,authorityroleref au,authority aa
+		WHERE a.id = ro.accountID 
+		AND ro.roleID = r.id 
+		AND r.id = au.roleid 
+		AND au.authorityId = aa.id 
+		AND a.account=#{account}
+	</select>
+	
+	<select id="findPersonInfo" parameterType="String" resultType="map">
+		SELECT id,account,password,companyId,name,status,idCardNo,DATE_FORMAT(hiredDate,'%Y-%m-%d') AS hiredDate,DATE_FORMAT(createDate,'%Y-%m-%d') AS createDate,createUserId,
+		createUserName, DATE_FORMAT(modifyDate,'%Y-%m-%d') AS modifyDate,modifyUserId,modifyUserName
+		FROM account
+		WHERE isDel=0 AND account = #{account}
+	</select>
+	
+</mapper>

@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.ManageMapper">
+
+	<!-- 禁用企业 -->
+	<update id="delCompany" parameterType="String">
+	UPDATE company SET isDel=ABS(isDel-1) WHERE id=#{cid}
+	</update>
+	
+	<!-- 禁用企业下的所有员工 -->
+	<update id="delUser" parameterType="String">
+	UPDATE account SET status=ABS(status-1) WHERE companyId=#{cid}
+	</update>
+
+	<!-- 查询所有待审核Logo -->
+	<select id="selectUnDefindLogo" resultType="Map">
+	SELECT c.id as cid,c.name as company,bl.name,bl.file,bl.uploadDay,bl.isEnable,
+	bl.confirmStatus,bl.createTime,bl.copanyId
+	FROM company c,bl_logo bl
+	WHERE bl.confirmStatus=0 AND c.id=bl.copanyId
+	</select>
+	
+	<!-- 审核logo通过 -->
+	<update id="updateLogoApply" parameterType="String">
+	UPDATE bl_logo SET confirmStatus=1,isEnable=1,modifyTime=CURRENT_DATE,
+	modifierUserName="张三",modifierUserAccount="17309401554" WHERE copanyId = #{cid}
+	</update>
+	
+	<!-- 审核logo不通过 -->
+	<update id="updateLogoUnapply" parameterType="String">
+	UPDATE bl_logo SET confirmStatus=1,isEnable=0,modifyTime=CURRENT_DATE,
+	modifierUserName="张三",modifierUserAccount="17309401554" WHERE copanyId = #{cid}
+	</update>
+
+	<!-- 查找所有企业 -->
+	<select id="selectAllCompanyInfo" resultType="Map">
+	SELECT c.id,c.name,ct.name as companyType,mt.name as memberType,c.level,
+	a1.name as province,a2.name as city,c.address,c.creditCode,c.cerificateAttachment,
+	c.email,a.account,c.status,c.isSendBl,c.isReceive,c.isSignature,c.createDate,
+	c.createUserId,c.createUserName,c.modifyDate,c.modifyUserId,c.modifyUserName,c.isDel
+	FROM company c,company_type ct,member_type mt,
+	address a1,address a2,account a
+	WHERE c.companyTypeId=ct.id
+	AND c.memberType=mt.id
+	AND c.provinceId=a1.id
+	AND c.cityId=a2.id
+	AND c.adminAccountId=a.id
+	</select>
+	
+	<!-- 查看logo -->
+	<select id="selectCompanyLogo" resultType="Map" parameterType="String">
+	SELECT bl.name as logname,bl.isEnable as logoisenable,bl.file as logofile,bl.confirmStatus as blconfirmStatus
+	FROM bl_logo bl 
+	WHERE bl.copanyId=#{cid}
+	</select>
+	
+	<!-- 查看印章 -->
+	<select id="selectCompanySeal" resultType="Map" parameterType="String">
+	SELECT bl.name as sealname,bl.isEnable as seaisenable,bl.file as seafile,bl.confirmStatus as sconfirmStatus,bl.sealType
+	FROM seal bl 
+	WHERE bl.copanyId=#{cid}
+	</select>
+
+	<!-- 查询所有申请服务的公司信息 -->
+	<select id="selectAllServiceApplay" resultType="Map">
+	SELECT c.id,c.name as name,ct.name as companyType,mt.name as memberType,c.level as level,a1.name as province,a1.name as city,
+	c.address as address,c.creditCode as creditCode,c.cerificateAttachment as cerificateAttachment,
+	c.email as email,account.account as adminAccount,c.status as status,
+	c.isSendBl as isSendBl,c.isSignature as isSignature,c.createDate as createDate,c.createUserId as createUserId,c.createUserName as createUserName,
+	c.modifyDate as modifyDate,c.modifyUserId as modifyUserId,c.modifyUserName as modifyUserName,
+	c.isDel as isDel,b.type as type,b.auditResult as auditResult,b.auditStatus as auditStatus
+	FROM company as c,company_type as ct,member_type as mt,
+	address as a1,address as a2,account,bus_apply b
+	WHERE b.auditStatus=0
+	AND c.id=b.companyId
+	AND c.companyTypeId=ct.id
+	AND c.memberType=mt.id
+	AND c.provinceId=a1.id
+	AND c.cityId=a2.id
+	AND c.adminAccountId=account.id
+	</select>
+
+	<!-- 平台通过服务申请通过修改印章状态 -->
+	<update id="updateSealStatusByCid" parameterType="String">
+	UPDATE seal SET confirmStatus=1 WHERE copanyId=#{cid}
+	</update>
+	
+	<!-- 平台通过服务申请通过修改公司状态 -->
+	<update id="updateCompanyIsSendBl" parameterType="String">
+	UPDATE company SET isSendBl=1 WHERE id=#{cid}
+	</update>
+
+	<!-- 平台通过服务申请通过修改公司状态 -->
+	<update id="updateCompanyIsReceive" parameterType="String">
+	UPDATE company SET IsReceive=1 WHERE id=#{cid}
+	</update>
+	
+	<!-- 平台通过服务申请通过修改公司状态 -->
+	<update id="updateCompanyIsSignature" parameterType="String">
+	UPDATE company SET IsSignature=1 WHERE id=#{cid}
+	</update>
+	
+	<!-- 平台通过服务申请通过修改申请表状态 -->
+	<update id="updateBusApplyStatusByCid" parameterType="String">
+	UPDATE bus_apply SET auditResult=1,auditStatus=1 WHERE companyId=#{cid}
+	</update>
+	
+	<!-- 根据公司id查找公司管理员角色id -->
+	<select id="selectRoleidByCid" resultType="String" parameterType="String">
+	SELECT id FROM role WHERE companyId=#{cid} AND type=1
+	</select>
+	
+	<!-- 平台通过服务申请添加角色对照权限 -->
+	<insert id="insertPermissions" parameterType="Map">
+	INSERT INTO authorityroleref (authorityId,roleId,createDate,createUserId,createUserName)
+	VALUES(#{authorityId},#{roleId},CURRENT_DATE,1,"张三")
+	</insert>
+	
+	<!-- 查看申请类型 -->
+	<select id="selectApplyTypeByCid" resultType="int" parameterType="String">
+	SELECT type FROM bus_apply WHERE companyId=#{cid} AND auditStatus=0
+	</select>
+	
+	<!-- 平台没有通过申请修改申请表 -->
+	<update id="unapplyService" parameterType="String">
+	UPDATE bus_apply SET auditStatus=2,auditResult=0 WHERE companyId=#{cid}
+	</update>
+
+	<!-- 平台审核企业，通过 -->
+	<update id="updateCompanyStatusToOne" parameterType="Map">
+	UPDATE company SET status=1,modifyDate=CURRENT_DATE,
+	modifyUserId=#{modifyUserId},modifyUserName=#{modifyUserName} WHERE id=#{cid}
+	</update>
+
+	<!-- 平台审核企业，不通过 -->
+	<update id="updateCompanyStatusToTwo" parameterType="Map">
+	UPDATE company SET status=2,modifyDate=CURRENT_DATE,
+	modifyUserId=#{modifyUserId},modifyUserName=#{modifyUserName} WHERE id=#{cid}
+	</update>
+
+	<!-- 查询所有出单申请的提单（平台的）提单状态为2 -->
+	<select id="findAllStatesIsTwo" resultType="Map">
+		SELECT bl.sendCompanyId,bl.id,blNo,c1.name AS sendCompany ,c2.name AS receiveCompany,c3.name AS signatureCompany,p2.name,bl.billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,scfAuditUserAccount,
+		scfAuditUserName,scfAuditUserDay,signatureAuditStatus,signatureAuditResult,signatureAuditOpinion,
+		signatureAuditUserAccount,signatureAuditUserName,signatureAuditUserDay,createUserAccount,
+		bl.createUserName,createTime,modifierUserAccount,modifierUserName,modifyTime,bl.isDel,sendBillDate,
+		p2.sendPrice,
+		billLogoName,billImageName,original,copy
+		FROM bill_of_lading as bl,company as c1,company as c2,company as c3,port as p2
+		WHERE billStatus=2
+		AND bl.sendCompanyId=c1.id
+		AND bl.receiveCompanyId=c2.id
+		AND bl.signatureCompanyId=c3.id
+		AND bl.portOfLoading=p2.id
+	</select>
+
+	<resultMap type="Map" id="infomation">
+	<id property="blid" column="blid"/>
+	<result property="sendCompany" column="sendCompany"/>
+	<result property="receiveCompany" column="receiveCompany"/>
+	<result property="signatureCompany" column="signatureCompany"/>
+	<result property="port" column="port"/>
+	<result property="billStatus" column="billStatus"/>
+	<result property="shipper" column="shipper"/>
+	<result property="consignee" column="consignee"/>
+	<result property="notifyParty" column="notifyParty"/>
+	<result property="placeOfreceipt" column="placeOfreceipt"/>
+	<result property="vessel" column="vessel"/>
+	<result property="portOfLoading" column="portOfLoading"/>
+	<result property="portOfTransshipment" column="portOfTransshipment"/>
+	<result property="PortOfDischarge" column="PortOfDischarge"/>
+	<result property="PlaceOfDelivery" column="PlaceOfDelivery"/>
+	<result property="freightCharges" column="freightCharges"/>
+	<result property="NoOfOriginal" column="NoOfOriginal"/>
+	<result property="declared" column="declared"/>
+	<result property="voyageNo" column="voyageNo"/>
+	<result property="preCarriageBy" column="preCarriageBy"/>
+	<result property="placeAndDate" column="placeAndDate"/>
+	<result property="totalNumber" column="totalNumber"/>
+	<result property="finalDestination" column="finalDestination"/>
+	<result property="fordelivery" column="fordelivery"/>
+	<result property="typeOfMovement" column="typeOfMovement"/>
+	<result property="rcAuditStatus" column="rcAuditStatus"/>
+	<result property="rcfAuditResult" column="rcfAuditResult"/>
+	<result property="rcfAuditOpinion" column="rcfAuditOpinion"/>
+	<result property="rcfAuditUserAccount" column="rcfAuditUserAccount"/>
+	<result property="rcfAuditUserName" column="rcfAuditUserName"/>
+	<result property="rcfAuditUserDay" column="rcfAuditUserDay"/>
+	<result property="scAuditStatus" column="scAuditStatus"/>
+	<result property="scfAuditResult" column="scfAuditResult"/>
+	<result property="scfAuditOpinion" column="scfAuditOpinion"/>
+	<result property="scfAuditUserAccount" column="scfAuditUserAccount"/>
+	<result property="scfAuditUserName" column="scfAuditUserName"/>
+	<result property="scfAuditUserDay" column="scfAuditUserDay"/>
+	<result property="signatureAuditStatus" column="signatureAuditStatus"/>
+	<result property="signatureAuditResult" column="signatureAuditResult"/>
+	<result property="signatureAuditOpinion" column="signatureAuditOpinion"/>
+	<result property="signatureAuditUserAccount" column="signatureAuditUserAccount"/>
+	<result property="signatureAuditUserName" column="signatureAuditUserName"/>
+	<result property="signatureAuditUserDay" column="signatureAuditUserDay"/>
+	<result property="createUserAccount" column="createUserAccount"/>
+	<result property="createUserName" column="createUserName"/>
+	<result property="createTime" column="createTime"/>
+	<result property="modifierUserAccount" column="modifierUserAccount"/>
+	<result property="modifierUserName" column="modifierUserName"/>
+	<result property="modifyTime" column="modifyTime"/>
+	<result property="isDel" column="isDel"/>
+	<result property="sendBillDate" column="sendBillDate"/>
+	<result property="sendPrice" column="sendPrice"/>
+	<result property="billLogoName" column="billLogoName"/>
+	<result property="billImageName" column="billImageName"/>
+	<result property="original" column="original"/>
+	<result property="copy" column="copy"/>
+	<collection property="goods" ofType="Map" javaType="List">
+	<id property="bgid" column="bgid"/>
+	<result property="blId" column="blId"/>
+	<result property="MarksAndNos" column="MarksAndNos"/>
+	<result property="NoAndKindOfPackages" column="NoAndKindOfPackages"/>
+	<result property="DescriptionOfgoods" column="DescriptionOfgoods"/>
+	<result property="GrossWeight" column="GrossWeight"/>
+	<result property="Measurement" column="Measurement"/>
+	</collection>
+	</resultMap>
+	<!-- 根据提单id查找提单所有信息 -->
+	<select id="selectAllInfomationById" resultMap="infomation" parameterType="String">
+	SELECT bl.id AS blid,blNo,c1.name AS sendCompany ,c2.name AS receiveCompany,c3.name AS signatureCompany,
+	p1.name AS port,bl.billStatus AS billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,
+		IFNULL(rcfAuditOpinion,''),rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,
+		IFNULL(scAuditStatus,0),
+		IFNULL(scfAuditResult,0),
+		IFNULL(scfAuditOpinion,''),
+		IFNULL(scfAuditUserAccount,''),
+		IFNULL(scfAuditUserName,''),
+		IFNULL(scfAuditUserDay,''),
+		IFNULL(signatureAuditStatus,0),
+		IFNULL(signatureAuditResult,0),
+		IFNULL(signatureAuditOpinion,''),
+		IFNULL(signatureAuditUserAccount,''),
+		IFNULL(signatureAuditUserName,''),
+		IFNULL(signatureAuditUserDay,''),createUserAccount,bl.createUserName AS createUserName,
+		IFNULL(createTime,''),
+		IFNULL(modifierUserAccount,''),
+		IFNULL(modifierUserName,''),
+		IFNULL(modifyTime,''),bl.isDel AS isDel,
+		IFNULL(sendBillDate,''),
+		IFNULL(p2.sendPrice,0) AS sendPrice,
+		IFNULL(billLogoName,''),
+		IFNULL(billImageName,''),
+		IFNULL(original,''),
+		IFNULL(copy,''),bg.id AS bgid,
+		IFNULL(bg.blId,0) AS blId,
+		IFNULL(bg.MarksAndNos,'') AS MarksAndNos,
+		IFNULL(bg.NoAndKindOfPackages,'') AS NoAndKindOfPackages,
+		IFNULL(bg.DescriptionOfgoods,'') AS DescriptionOfgoods,
+		IFNULL(bg.GrossWeight,'') AS GrossWeight,
+		IFNULL(bg.Measurement,'') AS Measurement
+		FROM bill_of_lading as bl,company as c1,company as c2,company as c3,port as p1,port as p2,bill_goods as bg
+		WHERE bl.blNo = #{blNo}
+		AND bl.sendCompanyId=c1.id
+		AND bl.receiveCompanyId=c2.id
+		AND bl.signatureCompanyId=c3.id
+		AND bl.proId=p1.id
+		AND bl.costId=p2.id
+		AND bl.id = bg.blId
+	</select>
+	
+	<!-- 根据提单号更改正本名称 -->
+	<update id="updateOriginal" parameterType="Map">
+	UPDATE bill_of_lading SET original=#{original} WHERE blNo=#{blNo}
+	</update>
+	
+	<!-- 根据blNo查询提单id -->
+	<select id="selectBlNoId" resultType="Map" parameterType="String">
+	SELECT id FROM bill_of_lading WHERE blNo=#{blNo}
+	</select>
+	
+	<!-- 插入提单文件表数据 -->
+	<insert id="insertBillOfFile" parameterType="Map">
+	INSERT INTO bill_of_lading_file (blId,type,isEffective,fileNo,printStatus)
+	VALUES (#{blId},1,1,#{fileNo},0)
+	</insert>
+	
+	<!-- 平台通过申请（提单状态为变为3） -->
+	<update id="pingTaiApply" parameterType="String">
+		UPDATE bill_of_lading SET billStatus=3 WHERE blNo=#{blNo}
+	</update>
+
+	<!-- 平台不通过（置空所有状态位） -->
+	<update id="pingTaiUnapply" parameterType="String">
+		UPDATE bill_of_lading SET billStatus=0,rcAuditStatus=0,
+		scAuditStatus=0,signatureAuditStatus=0 WHERE blNo=#{blNo}
+	</update>
+
+	<!-- 找到可以打印的订单，提单状态为4（平台） -->
+	<select id="findAllstatesisfour" resultType="Map">
+		SELECT bl.id,blNo,c1.name AS sendCompanyId ,c2.name AS receiveCompanyId,c3.name AS signatureCompanyId,p1.name,bl.billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,scfAuditUserAccount,
+		scfAuditUserName,scfAuditUserDay,signatureAuditStatus,signatureAuditResult,signatureAuditOpinion,
+		signatureAuditUserAccount,signatureAuditUserName,signatureAuditUserDay,createUserAccount,
+		bl.createUserName,createTime,modifierUserAccount,modifierUserName,modifyTime,bl.isDel,sendBillDate,
+		p1.sendPrice,
+		billLogoName,billImageName,original,copy
+		FROM bill_of_lading as bl,company as c1,company as c2,company as c3,port as p1
+		WHERE billStatus=4
+		AND bl.sendCompanyId=c1.id
+		AND bl.receiveCompanyId=c2.id
+		AND bl.signatureCompanyId=c3.id
+		AND bl.portOfLoading=p1.id
+	</select>
+
+	<!-- 平台点击打印以后状态位由4变成5 -->
+	<update id="painting" parameterType="String">
+		UPDATE bill_of_lading SET billStatus=5 WHERE blNo=#{blNo}
+	</update>
+	<select id="selectblida" parameterType="String" resultType="String">
+	SELECT id FROM bill_of_lading WHERE blNo=#{blNo}
+	</select>
+	<update id="updatepaintapply" parameterType="String">
+	UPDATE bill_of_lading_file SET printStatus=1 WHERE blId=#{blId}
+	</update>
+
+	<!-- 平台显示所有邮寄申请的提单(状态位为6） -->
+	<select id="findAllstatesissix" resultType="Map">
+		SELECT bl.id,blNo,c1.name AS sendCompanyId ,c2.name AS receiveCompanyId,c3.name AS signatureCompanyId,p1.name,bl.billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,scfAuditUserAccount,
+		scfAuditUserName,scfAuditUserDay,signatureAuditStatus,signatureAuditResult,signatureAuditOpinion,
+		signatureAuditUserAccount,signatureAuditUserName,signatureAuditUserDay,createUserAccount,
+		bl.createUserName,createTime,modifierUserAccount,modifierUserName,modifyTime,bl.isDel,sendBillDate,
+		p1.sendPrice,
+		billLogoName,billImageName,original,copy
+		FROM bill_of_lading as bl,company as c1,company as c2,company as c3,port as p1
+		WHERE billStatus=6
+		AND bl.sendCompanyId=c1.id
+		AND bl.receiveCompanyId=c2.id
+		AND bl.signatureCompanyId=c3.id
+		AND bl.portOfLoading=p1.id
+	</select>
+
+	<!-- 查找所有邮寄公司信息备用 -->
+	<select id="findAllMallingcompany" resultType="Map">
+		SELECT id,name FROM express_company
+	</select>
+
+	<!-- 根据blNoid查找邮寄信息id -->
+	<select id="selectExpressId" resultType="Map"
+		parameterType="String">
+		SELECT expressId FROM bill_of_lading_file WHERE blId = #{blNoid}
+	</select>
+
+	<!-- 根据account查找account的name -->
+	<select id="selectAccountName" resultType="Map"
+		parameterType="String">
+	SELECT id,name FROM account WHERE account=#{account}
+	</select>
+
+	<!-- 邮寄通过选择快递公司开始邮寄 -->
+	<update id="malling" parameterType="Map">
+		UPDATE express SET orderNo=#{orderNo},expressCompanyId=#{expressCompanyId},
+		sendDay=CURRENT_DATE,
+		recordTime=CURRENT_DATE,recordUserName=#{recordUserName},recordUserAccount=#{recordUserAccount}
+		WHERE id = #{id}
+	</update>
+	
+	<!-- 邮寄通过后修改状体为8 -->
+	<update id="updatebltoeight" parameterType="String">
+	UPDATE bill_of_lading 
+	SET billStatus=8 
+	WHERE id=#{blNoid}
+	</update>
+</mapper>

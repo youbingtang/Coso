@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.CusLevelMapper">
+	<!-- 根据id查找所有客户信息 -->
+	<select id="findAllCusLevel"
+		resultType="Map">
+		 SELECT id,name,low,hi,
+		 DATE_FORMAT(createDate,'%Y-%m-%d') AS createDate,
+		 createUserId,createUserName,
+		 DATE_FORMAT(modifyDate,'%Y-%m-%d') AS modifyDate,
+		 modifyUserId,modifyUserName,isDel
+		 FROM cus_level
+		<where>
+			<if test="name != ''">
+				AND name LIKE "%#{name}"%"
+			</if>
+            <if test="low != ''">
+				AND low = #{low}
+			</if>		
+			<if test="hi != ''">
+				AND hi = #{hi}
+			</if>
+			<if test="createDate != ''">
+				AND createDate = #{createDate}
+			</if>		
+			<if test="createUserId != ''">
+				AND createUserId = #{createUserId}
+			</if>			
+			<if test="createUserName != ''">
+				AND createUserName = #{createUserName}
+			</if>			
+			<if test="modifyDate != ''">
+				AND modifyDate = #{modifyDate}
+			</if>			
+			<if test="modifyUserId != ''">
+				AND modifyUserId = #{modifyUserId}
+			</if>			
+			<if test="modifyUserName != ''">
+				AND modifyUserName = #{modifyUserName}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 查询-->
+	<select id="findById" resultType="Map" parameterType="int">
+		SELECT name,low,hi,
+		DATE_FORMAT(createDate,'%Y-%m-%d') AS createDate,
+		createUserId,createUserName,
+		DATE_FORMAT(modifyDate,'%Y-%m-%d') AS modifyDate,
+		modifyUserId,modifyUserName
+		FROM cus_level
+		WHERE id=#{id}
+	</select>
+	
+	<!-- 编辑 -->
+	<update id="updateCusLevel" parameterType="Map">
+		UPDATE cus_level
+		SET 
+		name=#{name},
+		low=#{low},
+		hi=#{hi},
+		createDate=#{createDate},
+		createUserId=#{createUserId},
+		createUserName=#{createUserName},
+		modifyDate=#{modifyDate},
+		modifyUserId=#{modifyUserId},
+		modifyUserName=#{modifyUserName}
+		WHERE id=#{id}		
+	</update>
+	
+	<!-- 删除  -->
+	<!-- isdel：0代表未删除，1代表已删除  -->
+	<delete id="delCusLevel" parameterType="int">
+		UPDATE cus_level  
+		SET  
+		isDel=1 
+		WHERE id=#{id}
+	</delete>
+	
+	<!-- 添加 -->
+	<insert id="addCusLevel" parameterType="Map">
+		INSERT INTO cus_level(name,low,hi,createDate,
+		createUserId,createUserName,modifyDate,modifyUserId,
+		modifyUserName,isDel,version)
+		VALUES (#{name},#{low},#{hi},CURRENT_TIMESTAMP,
+		#{createUserId},#{createUserName},
+		CURRENT_TIMESTAMP,#{modifyUserId},#{modifyUserName},0,0)
+	</insert>
+	
+</mapper>

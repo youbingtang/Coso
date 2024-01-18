@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sjdl.cslcp.mapper.MembertypeMapper">
+
+	<!-- 模糊查询表中数据,不拼接任何条件时为查询所有 -->
+	<select id="findLikeMemberType" resultType="Map">
+		SELECT id,name,discount
+		FROM member_type
+		<where>
+			<!-- 类型名称模糊查询，如果用户没有输入，不拼接条件语句 -->
+			<if test="name !=''">name LIKE "%"#{name}"%" </if>
+			<!--折扣比例模糊查询，如果用户没有输入，不拼接条件 -->
+			<if test="discount !=''">AND LIKE "%"#{discount}"%"</if>
+		</where>
+	</select>
+
+	<!-- 根据id查询member_type表中符合条件的数据 -->
+	<select id="findMemberTypeById" parameterType="int"
+		resultType="Map">
+		SELECT id,name,discount
+		FROM member_type
+		WHERE id=#{id}
+	</select>
+
+	<!-- 向表中插入数据 -->
+	<insert id="insertMemberType" parameterType="Map">
+		INSERT INTO member_type(name,discount)
+		VALUES (#{name},#{discount})
+	</insert>
+
+	<!-- 删除表中数据 -->
+	<delete id="delMemberType" parameterType="int">
+		DELETE FROM member_type
+		WHERE id=#{id}
+	</delete>
+
+	<!-- 修改表中数据 -->
+	<update id="editMemberType" parameterType="Map">
+		UPDATE member_type SET name=#{name},discount=#{discount}
+		WHERE id=#{id}
+	</update>
+</mapper>

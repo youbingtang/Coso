@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<typeAliases>
+		<!-- 设置别名，为实体包下所有实体类创建以类名开头小写为了类型取得别名 -->
+		<package name="com.sjdl.cslcp.entity"/>
+	</typeAliases>
+</configuration>

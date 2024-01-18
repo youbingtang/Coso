@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+https://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/context
+ https://www.springframework.org/schema/context/spring-context.xsd
+ http://www.springframework.org/schema/aop
+ https://www.springframework.org/schema/aop/spring-aop.xsd
+ http://www.springframework.org/schema/tx
+ https://www.springframework.org/schema/tx/spring-tx.xsd
+ http://www.springframework.org/schema/mvc
+ https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+ 	
+ 	<!-- 第一步进行对包里的注解进行扫描 -->
+ 	<!-- 根据要求，用context标签扫描service包下到的类，service包下所有类的前面都有@service注解，用来
+ 	创建service对象 -->
+ 	<context:component-scan base-package="com.sjdl.cslcp.service.impl"></context:component-scan>
+	
+	<!-- 配置发送邮件信息 -->
+	<bean id="javaMailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+	<!-- smtp服务器配置 -->
+	<property name="host" value="${mail.smtp.host}"></property>
+	<!-- 发送邮件的账号 -->
+	<property name="username" value="${mail.smtp.username}"></property>
+	<!-- 发送邮件的密码（授权码） -->
+	<property name="password" value="${mail.smtp.password}"></property>
+	<!-- 邮件字符集 -->
+	<property name="defaultEncoding" value="${mail.smtp.defaultEncoding}"></property>
+	<!-- 设置 -->
+	<property name="javaMailProperties">
+	<props>
+			<!-- smtp是否西药用户验证 -->
+			<prop key="mail.smtp.auth">${mail.smtp.auth}</prop>
+			<prop key="mail.smtp.timeout">${mail.smtp.timeout}</prop>
+	</props>
+	</property>
+	</bean>
+	<!-- 第二步进行读取db属性文件，将属性文件中的用户名和密码等一些配置信息读取出来，联合spring的bean标签
+	将读取的信息用来链接后台数据库-->
+	<context:property-placeholder location="classpath:db.properties,classpath:mail.properties"/>
+
+	<!-- 第三步配置数据库连接池，由于链接数据库现在用spring配置，所以用到spring jar包里dataSource
+	用spring的bean标签配置数据库链接池，name对用于属性文件中key，value对应属性文件key=后的值-->
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
+		<property name="driverClassName" value="${driver}" ></property>
+		<property name="url" value="${url}"></property>
+		<property name="username" value="${user}"></property>
+		<property name="password" value="${password}"></property>
+		
+		<property name="maxTotal" value="${maxTotal}"></property>
+		<property name="maxIdle" value="${maxIdle}"></property>
+		<property name="initialSize" value="${initialSize}"></property>
+	</bean>
+	
+	<!-- 第四步配置事务操作，事务有spring配置，用的是注解的方式进行事务的管理，
+	用到spring下的jar包，DataSourceTransactionManager引用上一步数据库连接池的dataSource-->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<!-- 第五步配置事务切面 -->
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	<!-- <tx:advice transaction-manager="transactionManager" id="txAdvice">
+		<tx:attributes>
+		<tx:method name="find*" read-only="true" isolation="DEFAULT" propagation="SUPPORTS"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<aop:config>
+		<aop:pointcut expression="execution(* com.sjdl.cslcp.service.*.*(..))" id="Mypointcut"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="Mypointcut"/>
+	</aop:config> -->
+	
+	<!-- 第六步配置SqlSession，之前用到的是mybatis框架的SqlSessionFactory的builder的build方法进行搭建工厂
+	现将搭建工厂的任务交给了spring去做，利用了mybatis和spring整合包下的SqlSessionFactory读取xml配置文件并
+	配置数据源-->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- mybaties配置文件 -->
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+		<!-- 数据源 -->
+		<property name="dataSource" ref="dataSource"></property>
+		
+		<property name="plugins">
+			<array>
+				<bean class="com.github.pagehelper.PageInterceptor"></bean>
+			</array>
+		</property>
+	</bean>
+	
+	<!-- 配置Mapper文件里的自动生成对象 -->
+	<bean id="scanner" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.sjdl.cslcp.mapper"></property>
+	</bean>
+	
+	<!-- 上传管理bean -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="UTF-8"></property>
+	</bean>
+	
+</beans>
+

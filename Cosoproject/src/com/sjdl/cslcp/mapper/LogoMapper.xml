@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.LogoMapper">
+
+	 <!-- 上传logo -->
+    <insert id="save"  >
+        insert into bl_logo(name,uploadDay) values (#{name},#{uploadDay})    
+    </insert> 
+    
+    <!-- 分页查询logo -->
+	<select id="findAllLogo"
+		resultType="Map">
+		<!-- SELECT copanyId,modifierUserName,modifyTime,isEnable
+		FROM bl_logo -->
+		SELECT c.name,l.name logoname,l.file,l.uploadDay,l.isEnable
+		FROM bl_logo l,company c
+		WHERE
+		c.companyTypeId=l.copanyId
+	</select>
+	<!-- 修改logo -->
+	<update id="edit" >
+		UPDATE bl_logo
+		SET 
+			copanyId=#{copanyId},
+			name=#{name},
+			file=#{file},
+			isEnable=#{isEnable},
+			confirmStatus=#{confirmStatus}
+		WHERE id=#{id}		
+	</update>
+	<!-- 删除操作 -->
+	<delete id="del" parameterType="String">
+		DELETE FROM bl_logo WHERE name = #{name}	
+	</delete>	
+	<select id="findlogobycid" parameterType="String" resultType="map">
+		select file 
+		from bl_logo
+		where copanyId=#{copanyId}
+	</select>
+</mapper>

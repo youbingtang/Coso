@@ -1,0 +1,12 @@
+eclipse.preferences.version=1
+encoding//src/com/sjdl/cslcp/controller/AddressController.java=UTF-8
+encoding//src/com/sjdl/cslcp/controller/ExpressCompanyController.java=UTF-8
+encoding//src/com/sjdl/cslcp/controller/ProjectdataController.java=UTF-8
+encoding//src/com/sjdl/cslcp/mapper/ExpressCompanyMapper.java=UTF-8
+encoding//src/com/sjdl/cslcp/mapper/ProjectdataMapper.java=UTF-8
+encoding//src/com/sjdl/cslcp/service/ExpressCompanyService.java=UTF-8
+encoding//src/com/sjdl/cslcp/service/ProjectdataService.java=UTF-8
+encoding//src/com/sjdl/cslcp/service/impl/ExpressCompanyServiceImpl.java=UTF-8
+encoding//src/com/sjdl/cslcp/service/impl/ProjectdataServiceImpl.java=UTF-8
+encoding//test/com/sjdl/cslcp/service/impl/ExpressCompanyServiceImplTest.java=UTF-8
+encoding//test/com/sjdl/cslcp/service/impl/ProjectdataServiceImplTest.java=UTF-8

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.ExpressCompanyMapper">
+
+	<!-- 查找快递公司 -->
+	<select id="findAllExpressCompany" resultType="Map">
+		SELECT id,
+		name,createDate,createUserId,createUserName,modifyDate,modifyUserId,modifyUserName,isDel,version
+		FROM express_company
+		<where>
+			<if test="name != ''">
+				AND name = #{name}
+			</if>
+			<if test="createDate != ''">
+				AND createDate = #{createDate}
+			</if>
+			<if test="createUserId != ''">
+				AND createUserId = #{createUserId}
+			</if>
+			<if test="createUserName != ''">
+				AND createUserName = #{createUserName}
+			</if>
+			<if test="modifyDate != ''">
+				AND modifyDate = #{modifyDate}
+			</if>
+			<if test="modifyUserId != ''">
+				AND modifyUserId = #{modifyUserId}
+			</if>
+			<if test="modifyUserName != ''">
+				AND modifyUserName = #{modifyUserName}
+			</if>
+		</where>
+
+	</select>
+	
+	<select id="findById" resultType="Map" parameterType="int">
+		SELECT id,
+		name,createDate,createUserId,createUserName,modifyDate,modifyUserId,modifyUserName,isDel,version
+		FROM express_company
+		WHERE id=#{id}
+	</select>
+	
+	<update id="edit" parameterType="Map">
+		UPDATE express_company
+		SET
+		id=#{id},
+		name=#{name},
+		createDate=#{createDate},
+		createUserId=#{createUserId},
+		createUserName=#{createUserName},
+		modifyDate=#{modifyDate},
+		modifyUserId=#{modifyUserId},
+		modifyUserName=#{modifyUserName},
+		isDel=#{isDel},
+		version=#{version}
+		WHERE
+		id=#{id}
+	</update>
+	
+	<delete id="del" parameterType="int">
+		DELETE FROM express_company WHERE
+		id = #{id}
+	</delete>
+	
+	<insert id="insertExpressCompany" parameterType="Map">
+		INSERT INTO
+		express_company(id,name,createDate,createUserId,createUserName,modifyDate,modifyUserId,modifyUserName,isDel,version
+		)
+		VALUES
+		(#{id},#{name},#{createDate},#{createUserId},#{createUserName},#{modifyDate},#{modifyUserId},#{modifyUserName},#{isDel},#{version})
+	</insert>
+</mapper>

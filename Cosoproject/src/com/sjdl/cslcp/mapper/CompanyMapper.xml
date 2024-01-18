@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sjdl.cslcp.mapper.CompanyMapper">
+	<!-- 注册所需省份和城市和公司类型 -->
+	<select id="findProvince" resultType="Map">
+		SELECT id,name FROM address WHERE pid=1
+	</select>
+	
+	<select id="findCity" resultType="Map" parameterType="String">
+		SELECT id,name FROM address WHERE pid=#{provinceId}
+	</select>
+	
+	<select id="findAllCompanyType" resultType="Map">
+		SELECT id,name FROM company_type WHERE isDel=0
+	</select>
+	
+	<!-- 判断account是否已经存在 -->
+	<select id="selectAccountCount" resultType="Map" parameterType="String">
+	SELECT COUNT(*) as count FROM account WHERE account=#{account}
+	</select>
+	
+	<!--添加用户信息 -->
+	<insert id="insertUser" parameterType="String">
+		INSERT INTO account
+		(account,password,createDate,createUserId,createUserName,isDel,version,status,hiredDate)
+		VALUES (#{account},"123456",CURRENT_DATE,1,"张三",0,1,0,CURRENT_DATE)
+	</insert>
+	
+	<!-- 根据account查找用户id -->
+	<select id="selectUserId" parameterType="String"
+		resultType="Map">
+		SELECT id FROM account WHERE account=#{account}
+	</select>
+	
+	<!-- 添加企业信息 -->
+	<insert id="insertCompany" parameterType="Map">
+		INSERT INTO company (name,companyTypeId,memberType,provinceId,cityId,
+		creditCode,cerificateAttachment,email,adminAccountId,
+		status,isSendBl,isReceive,createDate,createUserId,createUserName,isDel,isSignature)
+		VALUES
+		(#{name},#{companyTypeId},1,#{provinceId},#{cityId},#{creditCode},
+		#{cerificateAttachment},#{email},#{adminAccountId},
+		0,0,0,CURRENT_DATE,1,"张三",0,0)
+	</insert>
+	
+	<!--根据accountid查找companyid -->
+	<select id="selectCompanyId" parameterType="String"
+		resultType="Map">
+		SELECT id FROM company WHERE adminAccountId=#{adminAccountId}
+	</select>
+	
+	<!-- 将companyid插入用户表中 -->
+	<update id="updateUserCompany" parameterType="Map">
+		UPDATE account SET companyId=#{companyId} WHERE id=#{accountId}
+	</update>
+	
+	<!-- 添加角色表信息 -->
+	<insert id="insertRole" parameterType="String">
+		INSERT INTO role
+		(name,type,createDate,createUserId,createUserName,isDel,companyId,version)
+		VALUES ('企业管理员',1,CURRENT_DATE,1,'张三',0,#{companyId},1)
+	</insert>
+	
+	<!-- 根据companyid查找角色id -->
+	<select id="selectroleid" resultType="Map"
+		parameterType="String">
+		SELECT id FROM role WHERE companyId=#{companyId}
+	</select>
+	
+	<!-- 添加角色账号对照表信息 -->
+	<insert id="insertRoleAccountRef" parameterType="Map">
+		INSERT INTO roleaccountref (roleId,accountId,createUserId,createUserName)
+		VALUES (#{roleID},#{accountID},1,"张三")
+	</insert>
+	
+	<!-- 添加权限角色对照表信息 -->
+	<insert id="insertAuthorityRoleRef" parameterType="Map">
+	INSERT INTO authorityroleref (roleId,authorityId,createDate,createUserId,createUserName)
+	VALUES (#{roleID},#{authorityId},CURRENT_DATE,1,"张三")
+	</insert>
+		
+	<!-- 查询所有未审核企业 -->
+	<select id="findAllUndifindCompany" resultType="Map">
+		SELECT c.id,c.name as name,ct.name as companyType,mt.name as memberType,c.level as level,a1.name as province,a2.name as city,
+	c.address as address,c.creditCode as creditCode,c.cerificateAttachment as cerificateAttachment,
+	c.email as email,account.account as adminAccount,c.status as status,
+	c.isSendBl as isSendBl,c.isSignature as isSignature,c.createDate as createDate,c.createUserId as createUserId,c.createUserName as createUserName,
+	c.modifyDate as modifyDate,c.modifyUserId as modifyUserId,c.modifyUserName as modifyUserName,c.isDel as isDel
+	FROM company as c,company_type as ct,member_type as mt,
+	address as a1,address as a2,account
+	WHERE (c.status=0 OR c.status = 3)
+	AND c.companyTypeId=ct.id
+	AND c.memberType=mt.id
+	AND c.provinceId=a1.id
+	AND c.cityId=a2.id
+	AND c.adminAccountId=account.id
+	ORDER BY status DESC
+	</select>
+	
+	<!-- 查询对应企业的所有信息 -->
+	<select id="findAllCompanyInfor" resultType="Map"
+		parameterType="Integer">
+		SELECT c.id,c.name as name,ct.name as companyType,companyTypeId,mt.name as memberType,c.level as level,a1.name as province,a2.name as city,
+	c.address as address,c.creditCode as creditCode,c.cerificateAttachment as cerificateAttachment,
+	c.email as email,account.account as adminAccount,c.status as status,c.isReceive as isReceive,
+	c.isSendBl as isSendBl,c.isSignature as isSignature,c.createDate as createDate,c.createUserId as createUserId,c.createUserName as createUserName,
+	c.modifyDate as modifyDate,c.modifyUserId as modifyUserId,c.modifyUserName as modifyUserName,c.isDel as isDel
+	FROM company as c,company_type as ct,member_type as mt,
+	address as a1,address as a2,account
+	WHERE c.id = #{id}
+	AND c.companyTypeId=ct.id
+	AND c.memberType=mt.id
+	AND c.provinceId=a1.id
+	AND c.cityId=a2.id
+	AND c.adminAccountId=account.id
+	</select>
+
+	<!-- 平台审核不同意 -->
+	<update id="unconfim" parameterType="Integer">
+		UPDATE company SET status=2 where id=#{id}
+	</update>
+	
+	<!-- 平台审核同意 -->
+	<update id="confim" parameterType="Integer">
+		UPDATE company SET status=1 where id=#{id}
+	</update>
+
+	<!-- 企业信息修改 -->
+	<update id="updateCompanyInfor" parameterType="Map">
+		UPDATE company SET
+		name=#{name},companyTypeId=#{companyTypeId},email=#{email},
+		createUserName=#{createUserName} WHERE
+		adminAccountId=#{adminAccountId}
+	</update>
+	
+	<!--找签章公司 -->
+	<select id="findCompany1" resultType="Map">
+		SELECT id,name FROM company WHERE isSignature=1
+	</select>
+	
+	<!-- 找出单公司 -->
+	<select id="findCompany2" resultType="Map">
+		SELECT id,name FROM company WHERE isSendBl=1
+	</select>
+
+	<!-- 服务申请申请人信息 -->
+	<select id="findApplyUserInfo" parameterType="String"
+		resultType="Map">
+		SELECT companyId,name FROM account WHERE account=#{account}
+	</select>
+
+	<!-- 收单服务申请 -->
+	<insert id="companyapplyA" parameterType="Map">
+		INSERT INTO bus_apply (type,companyId,applyAccount,applyUserName,applyDate,auditStatus)
+		VALUES (0,#{companyId},#{applyAccount},#{applyUserName},CURRENT_DATE,0)
+	</insert>
+	
+	<!-- 签章服务申请 -->
+	<insert id="companyapplyC" parameterType="Map">
+		INSERT INTO bus_apply (type,companyId,applyAccount,applyUserName,applyDate,auditStatus)
+		VALUES (2,#{companyId},#{applyAccount},#{applyUserName},CURRENT_DATE,0)
+	</insert>
+	
+	<!-- 出单服务申请 -->
+	<insert id="companyapplyB" parameterType="Map">
+		INSERT INTO bus_apply (type,companyId,applyAccount,applyUserName,applyDate,auditStatus)
+		VALUES (1,#{companyId},#{applyAccount},#{applyUserName},CURRENT_DATE,0)
+	</insert>
+	
+	<!-- 签章方上传签章 -->
+	<insert id="insertSignatureSeal" parameterType="Map">
+		INSERT INTO seal
+		(copanyId,name,file,uploadDay,isEnable,sealType,confirmStatus,
+		createUserAccount,createUserName,createTime)
+		VALUES (#{companyId},#{name},#{file},CURRENT_DATE,1,0,0,#{account},
+		#{createUserName},CURRENT_DATE)
+	</insert>
+	
+	<!-- 出单方上传签章 -->
+	<insert id="insertSendBlSeal" parameterType="Map">
+		INSERT INTO seal
+		(copanyId,name,file,uploadDay,isEnable,sealType,confirmStatus,
+		createUserAccount,createUserName,createTime)
+		VALUES (#{companyId},#{sealname},#{seal},CURRENT_DATE,1,1,0,#{account},
+		#{createUserName},CURRENT_DATE)
+	</insert>
+	
+	<!-- 出单方上传logo -->
+	<insert id="insertSendBlLogo" parameterType="Map">
+		INSERT INTO bl_logo (copanyId,name,file,uploadDay,isEnable,confirmStatus,
+		createUserAccount,createUserName,createTime)
+		VALUES (#{companyId},#{logoname},#{logo},CURRENT_DATE,1,0,#{account},
+		#{createUserName},CURRENT_DATE)
+	</insert>
+	<!-- 出单方修改logo -->
+	<update id="updatelogobycid" parameterType="map">
+		update bl_logo 
+		set name=#{logoname},file=#{logo},modifierUserAccount=#{account},modifyTime=CURRENT_DATE,
+			modifierUserName=#{createUserName},isEnable=0
+		where 
+		copanyId=#{copanyId}
+	</update>
+	<!-- 根据企业id 查logofile -->
+	<select id="findlogofilebycid" parameterType="String" resultType="String">
+		select file from bl_logo where copanyId=#{cid}
+	</select>
+	
+	<!-- 根据源文件删除原来的记录 -->
+	<delete id="deleteSendBlLogo" parameterType="String">
+		delete from bl_logo where file=#{logofile}
+	</delete>
+</mapper>

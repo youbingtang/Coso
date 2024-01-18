@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.PersonInfoMapper">
+	<update id="updatePersonInfo" parameterType="map">
+		UPDATE account SET name=#{name},password=#{password},idCardNo=#{idCardNo},modifyDate=CURRENT_TIMESTAMP
+		WHERE account=#{account}
+	</update>
+	<select id="findAllAccount" parameterType="map" resultType="map">
+		SELECT a.id,a.account,a.password,a.companyId,a.name,a.status,a.idCardNo,DATE_FORMAT(a.hiredDate,'%Y-%m-%d') AS hiredDate,DATE_FORMAT(a.createDate,'%Y-%m-%d') AS createDate,a.createUserId,
+		a.createUserName,DATE_FORMAT(a.modifyDate,'%Y-%m-%d') AS modifyDate,a.modifyUserId,a.modifyUserName,ro.id AS roid
+		FROM account a,roleaccountref r,role ro
+		WHERE a.id = r.accountID 
+		AND ro.id = r.roleID 
+		AND ro.type = 2 
+		AND ro.companyID = #{cid}
+		AND a.isDel=0
+		<if test="name !='' ">
+		AND a.name LIKE "%"#{name}"%"
+		</if>
+		<if test="account !='' ">
+		AND a.account = #{account}
+		</if>
+		<if test="idCardNo !='' ">
+		AND a.idCardNo = #{idCardNo}
+		</if>
+	</select>
+	
+	<update id="updateStatus" parameterType="String">
+		UPDATE account SET status=abs(status - 1) WHERE id=#{id}
+	</update>
+	
+	<insert id="addAccount" parameterType="map" keyProperty="accountId" useGeneratedKeys="true">
+		INSERT INTO account(name,password,companyId,account,status,idCardNo,hiredDate,createDate,createUserId,CreateUserName,modifyDate,modifyUserId,modifyUserName,isDel,version)
+		VALUES(#{name},123456,#{cid},#{account},1,#{idCardNo},#{hiredDate},CURRENT_TIMESTAMP,#{adminId},#{adminName},CURRENT_TIMESTAMP,#{adminId},#{adminName},0,1)
+	</insert>
+	
+	<insert id="insertRoleAccount" parameterType="map">
+		INSERT INTO roleaccountref(roleId,accountId,createUserId,createUserName)
+		VALUES(#{roleId},#{accountId},#{adminId},#{adminName})
+	</insert>
+	
+	<select id="checkAccount" parameterType="map" resultType="int">
+		SELECT count(*) FROM account WHERE account=#{account}
+	</select>
+	<select id="checkIdCardNo" parameterType="map" resultType="int">
+		SELECT count(*) FROM account WHERE idCardNo = #{idCardNo}
+	</select>
+	
+	<update id="delAccount" parameterType="String">
+		UPDATE account SET isDel = 1 WHERE id = #{id}
+	</update>
+</mapper>

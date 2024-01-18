@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.SendMapper">
+	<select id="findReceiveCompany" resultType="map">
+		SELECT id,name FROM company WHERE isReceive=1
+	</select>
+	<select id="findSignCompany" resultType="map">
+		SELECT id,name FROM company WHERE isSignature=1
+	</select>
+	
+	<insert id="insertLading" parameterType="map" useGeneratedKeys="true" keyProperty="blId">
+		INSERT INTO bill_of_lading(blNo,sendCompanyId,receiveCompanyId,signatureCompanyId,
+		billStatus,shipper,consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,
+		portOfTransshipment,PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,
+		declared,voyageNo,preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,
+		typeOfMovement,rcAuditStatus,rcfAuditResult,rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,createUserAccount,createUserName,version,isDel)
+		VALUES(#{blNo},#{sendCompanyId},#{receiveCompanyId},#{signatureCompanyId},
+		0,#{shipper},#{consignee},#{notifyParty},#{placeOfreceipt},#{vessel},#{portOfLoading},
+		#{portOfTransshipment},#{PortOfDischarge},#{PlaceOfDelivery},#{freightCharges},#{NoOfOriginal},
+		#{declared},#{voyageNo},#{preCarriageBy},#{placeAndDate},#{totalNumber},#{finalDestination},
+		#{fordelivery},#{typeOfMovement},1,1,#{rcfAuditUserAccount},#{rcfAuditUserName},CURRENT_TIMESTAMP,
+		#{rcfAuditUserAccount},#{rcfAuditUserName},1,0)
+	</insert>
+	
+	<insert id="insertBillGoods" parameterType="map">
+		INSERT INTO bill_goods(blId,MarksAndNos,NoAndKindOfPackages,DescriptionOfgoods,GrossWeight,Measurement)
+		VALUES(#{blId},#{MarksAndNos},#{NoAndKindOfPackages},#{DescriptionOfgoods},#{GrossWeight},#{Measurement})
+	</insert>
+	
+	<!-- <insert id="insertBillFile" parameterType="map">
+		INSERT INTO bill_of_lading_file(blId,isEffective,type,fileNo,printStatus) VALUES(#{blId},1,0,0,0)
+	</insert> -->
+	
+	<select id="findBlNo" parameterType="map" resultType="int">
+		SELECT count(*) FROM bill_of_lading WHERE blNo = #{blNo}
+	</select>
+	
+	<select id="findStatusFive" parameterType="String" resultType="map">
+		SELECT bl.id,blNo,sendCompanyId,receiveCompanyId,signatureCompanyId,proId,billStatus,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,rcfAuditUserName,
+		DATE_FORMAT(rcfAuditUserDay,'%Y-%m-%d') AS rcfAuditUserDay,scAuditStatus,scfAuditResult,
+		scfAuditOpinion,scfAuditUserAccount,scfAuditUserName,DATE_FORMAT(scfAuditUserDay,'%Y-%m-%d') AS scfAuditUserDay,
+		signatureAuditStatus,signatureAuditResult,signatureAuditOpinion,signatureAuditUserAccount,
+		signatureAuditUserName,DATE_FORMAT(signatureAuditUserDay,'%Y-%m-%d') AS signatureAuditUserDay,
+		createUserAccount,createUserName,DATE_FORMAT(createTime,'%Y-%m-%d') AS createTime,modifierUserAccount,
+		modifierUserName,DATE_FORMAT(modifyTime,'%Y-%m-%d') AS modifyTime,DATE_FORMAT(sendBillDate,'%Y-%m-%d') AS sendBillDate,
+		costId,billLogoName,billImageName,original,copy,shipper,consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,
+		portOfTransshipment,PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,
+		declared,voyageNo,preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,
+		typeOfMovement,case bf.printStatus when '1' then '已打印' end as printStatus FROM bill_of_lading as bl,bill_of_lading_file as bf
+		WHERE	bl.isDel = 0
+		AND bl.billStatus = 5
+		AND bf.printStatus=1
+		AND bl.id=bf.blId
+		AND bl.receiveCompanyId=#{receiveCompanyId}
+	</select>
+	
+	<update id="updateStatusSix" parameterType="map" >
+		UPDATE bill_of_lading SET billStatus = 6 WHERE blNo = #{blNo}
+	</update>
+	
+	<select id="findApply" parameterType="String" resultType="map">
+		SELECT receiverName,receiverPhone,receiverAddress FROM print_apply WHERE blId = #{blId}
+	</select> 
+	
+	<insert id="insertExpress" parameterType="map" useGeneratedKeys="true" keyProperty="expressId">
+		INSERT INTO express(orderNo,expressCompanyId,sendDay,sendAddress,sendPerson,sendPhone,collectPerson,
+		collectAddress,collectPhone,status,recordTime,recordUserAccount,recordUserName,version)
+		VALUES(0,0,0,#{receiverAddress},#{receiverName},#{receiverPhone},#{collectPerson},#{collectAddress},#{collectPhone},2,CURRENT_TIMESTAMP,
+		0,0,1)
+	</insert>
+	
+	<update id="updateBillFile" parameterType="map">
+		UPDATE bill_of_lading_file SET expressId = #{expressId} WHERE blId = #{blId}
+	</update>
+	
+	<!-- 查询所有相关企业的提单（收单方） -->
+	<select id="findallrecording" parameterType="String" resultType="map">
+		SELECT  id,blNo,sendCompanyId,receiveCompanyId,signatureCompanyId,proId,billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portofLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,
+		rcfAuditUserName,rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,
+		scfAuditUserAccount,scfAuditUserName,scfAuditUserDay,signatureAuditStatus,
+		signatureAuditResult,signatureAuditOpinion,signatureAuditUserAccount,
+		signatureAuditUserName,signatureAuditUserDay,createUserAccount,createUserName,createTime,
+		modifierUserAccount,modifierUserName,modifyTime,version,isDel,sendBillDate,costId,
+		billLogoName,billImageName,original,copy	
+		FROM bill_of_lading
+		WHERE receiveCompanyId = #{receiveCompanyId} AND isDel = 0 AND rcAuditStatus!=1
+	</select>
+	
+	<!-- 查看单个提单详情 -->
+	<select id="findrecordingbyblNo" parameterType="String" resultType="map">
+		SELECT  id,blNo,sendCompanyId,receiveCompanyId,signatureCompanyId,proId,billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portofLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,
+		rcfAuditUserName,rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,
+		scfAuditUserAccount,scfAuditUserName,scfAuditUserDay,signatureAuditStatus,
+		signatureAuditResult,signatureAuditOpinion,signatureAuditUserAccount,
+		signatureAuditUserName,signatureAuditUserDay,createUserAccount,createUserName,createTime,
+		modifierUserAccount,modifierUserName,modifyTime,version,isDel,sendBillDate,costId,
+		billLogoName,billImageName,original,copy	
+		FROM bill_of_lading
+		WHERE blNo = #{blNo}
+	</select>
+	<!-- 修改提单信息，收单方审核状态为通过 -->
+	<update id="rcapply" parameterType="String">
+		UPDATE bill_of_lading
+		SET rcAuditStatus = 1
+		WHERE blNo = #{blNo}
+	</update>
+	
+	<!-- 修改提单信息，收单方审核状态为不通过 -->
+	<update id="rcunapply" parameterType="String">
+		UPDATE bill_of_lading
+		SET rcAuditStatus = 2,scAuditStatus=0,signatureAuditStatus=0
+		WHERE blNo = #{blNo}	
+	</update>
+	
+	<!-- 收单方修改提单信息 -->
+	<update id="rcmodify" parameterType="Map">
+	  UPDATE bill_of_lading		
+		SET 
+		shipper=#{shipper},
+		consignee=#{consignee},
+		notifyParty=#{notifyParty},
+		placeOfreceipt=#{placeOfreceipt},
+		vessel=#{vessel},
+		portOfLoading=#{portOfLoading},
+		portOfTransshipment=#{portOfTransshipment},
+		PortOfDischarge=#{PortOfDischarge},
+		PlaceOfDelivery=#{PlaceOfDelivery},
+		freightCharges=#{freightCharges},
+		NoOfOriginal=#{NoOfOriginal},
+		declared=#{declared},
+		voyageNo=#{voyageNo},
+		preCarriageBy=#{preCarriageBy},
+		placeAndDate=#{placeAndDate},
+		totalNumber=#{totalNumber},
+		finalDestination=#{finalDestination},
+		fordelivery=#{fordelivery},
+		typeOfMovement=#{typeOfMovement},
+		billStatus=0,
+		rcAuditStatus=0,
+		scAuditStatus=0,
+		signatureAuditStatus=0,
+		modifierUserAccount=1,
+		modifierUserName=1,	
+		modifyTime=CURRENT_TIMESTAMP
+	  WHERE id=#{id}	
+	</update>
+	
+	<select id="findtidanbymallingid"
+		resultType="Map"  parameterType="String">
+        SELECT bol.id,bol.blNo,bol.sendCompanyId,bol.receiveCompanyId,bol.signatureCompanyId,bol.proId,bol.billStatus,bol.shipper,
+		bol.consignee,bol.notifyParty,bol.placeOfreceipt,bol.vessel,bol.portOfLoading,bol.portOfTransshipment,
+		bol.PortOfDischarge,bol.PlaceOfDelivery,bol.freightCharges,bol.NoOfOriginal,bol.declared,bol.voyageNo,
+		bol.preCarriageBy,bol.placeAndDate,bol.totalNumber,bol.finalDestination,bol.fordelivery,bol.typeOfMovement,
+		bol.rcAuditStatus,bol.rcfAuditResult,bol.rcfAuditOpinion,bol.rcfAuditUserAccount,
+		bol.rcfAuditUserName,bol.rcfAuditUserDay,bol.scAuditStatus,bol.scfAuditResult,bol.scfAuditOpinion,
+		bol.scfAuditUserAccount,bol.scfAuditUserName,bol.scfAuditUserDay,bol.signatureAuditStatus,
+		bol.signatureAuditResult,bol.signatureAuditOpinion,bol.signatureAuditUserAccount,
+		bol.signatureAuditUserName,bol.signatureAuditUserDay,bol.createUserAccount,bol.createUserName,bol.createTime,
+		bol.modifierUserAccount,bol.modifierUserName,bol.modifyTime,bol.version,bol.isDel,bol.sendBillDate,bol.costId,
+		bol.billLogoName,bol.billImageName,bol.original,copy,
+		
+		bolf.id,bolf.blId,bolf.type,bolf.isEffective,bolf.abandonmentTime,bolf.fileNo,bolf.printStatus,
+		bolf.expressId,bolf.printApplyId,
+		
+		express.id,express.orderNo,express.expressCompanyId,express.sendDay,express.sendAddress,express.sendPerson,
+		express.sendPhone,express.collectAddress,express.collectPerson,express.collectPhone,case express.status when '0' then '已寄出' end as status,express.recordTime,
+		express.recordUserAccount,express.recordUserName
+		
+		FROM bill_of_lading bol,bill_of_lading_file bolf,express
+      WHERE receiveCompanyId=#{receiveCompanyId} AND
+       bol.id=bolf.blId AND 
+			 bol.billStatus=8 AND
+       bolf.expressId=express.id 
+	</select>	
+	
+	<!-- 确认签收 -->
+	<update id="ok" parameterType="Map">
+	 UPDATE bill_of_lading 
+	  SET 
+	   billStatus=9
+	  WHERE      
+	   blNo = #{blNo}
+	</update>
+	
+	
+</mapper>

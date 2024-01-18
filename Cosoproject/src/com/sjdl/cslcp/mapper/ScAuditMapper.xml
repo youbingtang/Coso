@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.ScAuditMapper">
+    <!-- 查询该出单公司的所有提单 -->
+ 	<select id="findsccompanyrecording" parameterType="String" resultType="map">
+ 		SELECT  a.id,a.blNo,a.sendCompanyId,a.receiveCompanyId,company.name as companyname,a.signatureCompanyId,a.proId,a.billStatus,a.shipper,
+		a.consignee,a.notifyParty,placeOfreceipt,vessel,portofLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,
+		rcfAuditUserName,rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,
+		scfAuditUserAccount,scfAuditUserName,scfAuditUserDay,signatureAuditStatus,
+		signatureAuditResult,signatureAuditOpinion,signatureAuditUserAccount,
+		signatureAuditUserName,signatureAuditUserDay,createUserAccount,a.createUserName,a.createTime,
+		a.modifierUserAccount,a.modifierUserName,a.modifyTime,a.version,a.isDel,sendBillDate,costId,
+		a.billLogoName,a.billImageName,a.original,a.copy	
+		FROM bill_of_lading as a,company
+		WHERE sendCompanyId=#{sendCompanyId} AND a.isDel = 0 AND scAuditStatus!=1 AND receiveCompanyId = company.id	AND billStatus=0
+
+ 	</select>
+	<!-- 根据账号account查询对应用户的基本信息 -->
+	<select id="findpersoninfobyacccount" parameterType="String" resultType="map">
+		select a.id,a.name,c.name AS sendaddress
+		from account as a,company as c
+		where account=#{account} AND c.id=a.companyId
+	</select>
+	<!-- 查询属于该公司的提单并且出单审核状态为0 -->
+	<select id="findallrecording" parameterType="map">
+		select bl.id,blNo,c1.name AS sendCompanyId ,c2.name AS receiveCompanyId,c3.name AS signatureCompanyId,p1.name,bl.billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,scfAuditUserAccount,
+		scfAuditUserName,scfAuditUserDay,signatureAuditStatus,signatureAuditResult,signatureAuditOpinion,
+		signatureAuditUserAccount,signatureAuditUserName,signatureAuditUserDay,createUserAccount,
+		bl.createUserName,createTime,modifierUserAccount,modifierUserName,modifyTime,bl.isDel,sendBillDate,
+		p2.sendPrice,
+		billLogoName,billImageName,original,copy
+		FROM bill_of_lading as bl,company as c1,company as c2,company as c3,port as p1,port as p2
+		where billStatus=0 
+		AND sendCompanyId=#{sendCompanyId}
+		AND bl.sendCompanyId=c1.id
+		AND bl.receiveCompanyId=c2.id
+		AND bl.signatureCompanyId=c3.id
+		AND bl.proId=p1.id
+		AND bl.costId=p2.id
+	</select>
+	
+	<!-- 查看单个提单详情 -->
+	<select id="findrecordingbyblNo" parameterType="String" resultType="map">
+		SELECT bl.id,blNo,c1.name AS sendCompanyId ,c2.name AS receiveCompanyId,c3.name AS signatureCompanyId,p1.name,bl.billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,scfAuditUserAccount,
+		scfAuditUserName,scfAuditUserDay,signatureAuditStatus,signatureAuditResult,signatureAuditOpinion,
+		signatureAuditUserAccount,signatureAuditUserName,signatureAuditUserDay,createUserAccount,
+		bl.createUserName,createTime,modifierUserAccount,modifierUserName,modifyTime,bl.isDel,sendBillDate,
+		p1.sendPrice,
+		billLogoName,billImageName,original,copy
+		FROM bill_of_lading as bl,company as c1,company as c2,company as c3,port as p1
+		WHERE blNo=#{blNo}
+		AND bl.sendCompanyId=c1.id
+		AND bl.receiveCompanyId=c2.id
+		AND bl.signatureCompanyId=c3.id
+		AND bl.portOfLoading=p1.id
+	</select>
+	
+	<!-- 出单方通过提单 -->
+	<update id="scapply" parameterType="map">
+		update bill_of_lading
+		set scAuditStatus=1,scfAuditResult=1,modifierUserAccount=#{modifierUserAccount},
+			modifierUserName=#{modifierUserName},modifyTime=CURRENT_TIMESTAMP
+		where blNo=#{blNo}
+	</update>
+	
+	<!-- 出单方不通过提单 -->
+	<update id="scunapply" parameterType="map">
+		update bill_of_lading
+		set scAuditStatus=2,scfAuditResult=0,modifierUserAccount=#{modifierUserAccount},
+			modifierUserName=#{modifierUserName},scfAuditOpinion=#{scfAuditOpinion},modifyTime=CURRENT_TIMESTAMP,
+			rcAuditStatus=0,signatureAuditStatus=0
+		where blNo=#{blNo}
+	</update>
+	
+	<!-- 出单方修改提单信息 -->
+	<update id="scmodify" parameterType="map">
+	  
+	</update>
+	<!-- 将三方通过审核的提单状态置1 -->
+	<update id="update1" parameterType="int">
+		update bill_of_lading
+		set billStatus=1
+		where sendCompanyId=#{sendCompanyId} and rcAuditStatus=1 and scAuditStatus=1 and signatureAuditStatus=1 and billStatus=0
+	</update>
+	
+	<!-- 查询提单状态为1的提单基本信息 代表三方确认 -->
+	<select id="findAllStatesIsOne" parameterType="int" resultType="map">
+		select bl.sendCompanyId AS sendCompany, bl.id,blNo,c1.name AS sendCompanyId ,c2.name AS receiveCompanyId,c3.name AS signatureCompanyId,p1.name,bl.billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,scfAuditUserAccount,
+		scfAuditUserName,scfAuditUserDay,signatureAuditStatus,signatureAuditResult,signatureAuditOpinion,
+		signatureAuditUserAccount,signatureAuditUserName,signatureAuditUserDay,createUserAccount,
+		bl.createUserName,createTime,modifierUserAccount,modifierUserName,modifyTime,bl.isDel,sendBillDate,
+		p1.sendPrice,
+		billLogoName,billImageName,original,copy,c2.name as companyname
+		FROM bill_of_lading as bl,company as c1,company as c2,company as c3,port as p1
+		where billStatus=1 
+		AND sendCompanyId=#{sendCompanyId}
+		AND bl.sendCompanyId=c1.id
+		AND bl.receiveCompanyId=c2.id
+		AND bl.signatureCompanyId=c3.id
+		AND bl.portOfLoading=p1.id
+	</select>
+	
+	<!-- 出单方点击申请出单提交至平台（状态由1变成2） -->
+	<update id="sendrecordingtopingtai" parameterType="String">
+		update bill_of_lading
+		set billStatus=2
+		where blNo=#{blNo}
+	</update>
+	
+	<!-- 查询本公司可以申请打印的提单（查询提单状态为3的） -->
+	<select id="findAllstatesidthree" parameterType="int" resultType="map">
+		select bl.id,blNo,c1.name AS sendCompanyId ,c2.name AS receiveCompanyId,c3.name AS signatureCompanyId,p1.name,bl.billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,scfAuditUserAccount,
+		scfAuditUserName,scfAuditUserDay,signatureAuditStatus,signatureAuditResult,signatureAuditOpinion,
+		signatureAuditUserAccount,signatureAuditUserName,signatureAuditUserDay,createUserAccount,
+		bl.createUserName,createTime,modifierUserAccount,modifierUserName,modifyTime,bl.isDel,sendBillDate,
+		p1.sendPrice,
+		billLogoName,billImageName,original,copy,c2.name as companyname
+		FROM bill_of_lading as bl,company as c1,company as c2,company as c3,port as p1
+		where billStatus=3
+		AND sendCompanyId=#{sendCompanyId}
+		AND bl.sendCompanyId=c1.id
+		AND bl.receiveCompanyId=c2.id
+		AND bl.signatureCompanyId=c3.id
+		AND bl.portOfLoading=p1.id
+		
+	</select>
+	
+	<!-- 申请打印（先交钱后改变提单状态位为4） -->
+	<!-- 查询对应提单的港口的出单价格 -->
+	<select id="selectSendPriceByblNo" parameterType="String" resultType="map">
+		select p.sendPrice,bl.blNo
+		from port as p,bill_of_lading as bl
+		where p.id=bl.portOfLoading and bl.blNo=#{blNo}
+	</select>
+	
+	<!-- 根据提单号查询提单的打印状态 -->
+	<select id="findprintTypeByblNo" parameterType="String" resultType="int">
+		select type
+		from print_apply
+		where blId=(select id from bill_of_lading where blNo=#{blNo})
+	</select>
+	
+	<!-- 向打印申请表中添加信息根据提单号 -->
+	<insert id="insertBillInfoByblNo" parameterType="map" useGeneratedKeys="true" keyProperty="id">
+		insert into print_apply(
+		blId,type,applyUserAccount,applyUserName,applyTime,printStatus,receiverName,receiverPhone,receiverAddress,payMoney)
+		values(#{blId},2,#{applyUserAccount},#{applyUserName},CURRENT_TIMESTAMP,1,#{receiverName},#{receiverPhone},#{receiverAddress},#{payMoney})
+	</insert>
+	
+	<!-- 更新提单文件表 -->
+	<update id="updatebillfile" parameterType="map">
+		update bill_of_lading_file
+		set type=1,printApplyId=#{printApplyId},expressId=#{expressId}
+		where blId=#{blId}
+	</update>
+	
+	<select id="findtypebyid" parameterType="int" resultType="int">
+		select type 
+		from print_apply
+		where blId=#{id}
+	</select>
+	
+	<!-- 打印申请状态变为4 -->
+	<update id="printingapply">
+		update bill_of_lading
+		set billStatus=4
+		where blNo=#{blNo}
+	</update>
+	
+	<delete id="updateBillStatus" >
+		UPDATE bill_of_lading
+		SET 
+			billStatus=7
+		WHERE blNO=#{blNO}	
+	</delete>
+	
+	<!-- 查询全部待审核提单 -->
+	<select id="findblNoZuoFeiByAll" resultType="map">
+	SELECT bla.id AS bid,bod.blNo AS blNo,bla.type AS type,bla.cause AS cause,bla.applyCompanyName AS applyCompanyName,bla.platformAuditResult AS platformAuditResult,bod.id as blid
+	FROM bl_lnvalid_apply bla,bill_of_lading bod
+	WHERE bla.blId = bod.id
+	AND bla.platformAuditResult = 2
+	</select>
+	
+	<!-- 提单作废拒绝 -->
+	<update id="updateBlNoByJujue" parameterType="map">
+	UPDATE bl_lnvalid_apply
+	SET platformAuditResult = 0,platformAuditOpinion = #{platformAuditOpinion}
+	WHERE id = #{bid}
+	</update>
+	<!-- 作废审核通过 -->
+	<update id="zuofeiapply" parameterType="map">
+		update bill_of_lading as bl,bl_lnvalid_apply as bla
+			set bl.billStatus=7,bla.platformAuditResult=1,bla.platformAuditOpinion="同意作废",
+			bla.platformAuditUserAccount=#{account},bla.platformAuditUserName="张三",bla.platformAuditDay=CURRENT_DATE
+			where bla.blId=#{blId} AND bl.id=#{blId} AND platformAuditResult=2
+	</update>
+	
+	<!-- 作废申请 -->
+	<insert id="zuofei" parameterType="map">
+		insert into bl_lnvalid_apply(blId,type,cause,desturction,guarantee,applyCompanyName,applyUserAccount,applyUserName,applyDay,platformAuditResult)
+		values(#{blId},1,#{cause},"无销毁记录",#{blId},#{applyCompanyName},#{account},#{applyUserName},CURRENT_DATE,2)
+	</insert>
+	
+</mapper>
+
+
+
+
+
+

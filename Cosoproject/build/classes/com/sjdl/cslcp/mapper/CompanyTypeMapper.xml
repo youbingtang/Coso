@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sjdl.cslcp.mapper.CompanyTypeMapper">
+	<!-- 查询公司类型信息 -->
+	<select id="finAllCompanyList" parameterType="String"  resultType="map">
+	     SELECT id,name,createDate,createUserId,createUserName,modifyDate,modifyUserId,
+	            modifyUserName,isDel
+         FROM company_type
+         WHERE name=#{name}
+	</select>
+	
+	<!-- 插入公司类型 -->
+	<insert useGeneratedKeys="true" keyColumn="id" id="insertCompany" parameterType="map">
+	     INSERT INTO company_type(id,name,createDate,createUserId,createUserName,isDel)
+         VALUES (#{id},#{name},CURRENT_DATE,#{createUserId},#{createUserName},'0')
+	</insert>
+	
+	<!-- 修改公司类型 -->
+	<update id="updateCompany" parameterType="map">
+	     UPDATE company_type
+	     SET 
+		    name=#{name},
+		    modifyDate=CURRENT_DATE,
+		    modifyUserId=#{modifyUserId},
+		    modifyUserName=#{modifyUserName}
+	     WHERE 
+		    id=#{id}
+	</update>
+	
+	<!-- 删除公司类型 isDel为0表示未删除，为1表示删除-->
+	<delete id="delCompany" parameterType="int">
+	    UPDATE company_type
+	     SET isDel=1
+	     WHERE id=#{id}
+	</delete>
+</mapper>

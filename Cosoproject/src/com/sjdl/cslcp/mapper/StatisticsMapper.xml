@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sjdl.cslcp.mapper.StatisticsMapper">
+
+    <!-- 查询平台、公司、提单的一些基本信息显示在平台管理员界面 -->
+    <select id="findStatistics"
+    resultType="Map">
+    SELECT cc.companycount,aa.accountcount,bi.issuecount,cn.ncompanycount,bn.nissueapplycount,bmni.mnissuecount,
+    btop.toplateformexaminecount,btos.tosignatureexaminecount,pt.topaybillcount,ec.collectioncount,em.mncollectioncount,
+    btoi.toissueexaminecount,bs.signaturecount,bmns.mnsignaturecount,bt.tosignaturecount
+    FROM
+	(SELECT COUNT(*) AS companycount FROM company) cc,
+	(SELECT COUNT(*) AS accountcount FROM account) aa,
+	(SELECT COUNT(*) AS issuecount FROM bill_of_lading) bi,
+	(SELECT COUNT(*) AS ncompanycount FROM company WHERE DATE_FORMAT(createDate,'%Y%m')=DATE_FORMAT(CURDATE(),'%Y%m')) cn,
+	(SELECT COUNT(*) AS nissueapplycount FROM bill_of_lading WHERE DATE_FORMAT(scfAuditUserDay,'%Y%m')=DATE_FORMAT(CURDATE(),'%Y%m')) bn,
+	(SELECT COUNT(*) AS mnissuecount FROM bill_of_lading WHERE DATE_FORMAT(sendBillDate,'%Y%m')=DATE_FORMAT(CURDATE(),'%Y%m')) bmni,
+	(SELECT COUNT(*) AS toplateformexaminecount FROM bill_of_lading WHERE rcfAuditResult=1 AND scfAuditResult=1 AND signatureAuditResult=1) btop,
+	(SELECT COUNT(*) AS tosignatureexaminecount FROM bill_of_lading WHERE signatureAuditStatus=0) btos,
+	(SELECT COUNT(*) AS topaybillcount FROM print_apply WHERE firstAuditResult=1) pt,
+	(SELECT COUNT(*) AS collectioncount FROM express WHERE `status`=1) ec,
+	(SELECT COUNT(*) AS mncollectioncount FROM express WHERE DATE_FORMAT(recordTime,'%Y%m')=DATE_FORMAT(CURDATE(),'%Y%m')) em,
+	(SELECT COUNT(*) AS toissueexaminecount FROM bill_of_lading WHERE scAuditStatus=1) btoi,
+	(SELECT COUNT(*) AS signaturecount FROM bill_of_lading WHERE signatureAuditResult=1) bs,
+	(SELECT COUNT(*) AS mnsignaturecount FROM bill_of_lading WHERE DATE_FORMAT(signatureAuditUserDay,'%Y%m')=DATE_FORMAT(CURDATE(),'%Y%m') AND signatureAuditResult=1) bmns,
+	(SELECT COUNT(*) AS tosignaturecount FROM bill_of_lading WHERE signatureAuditStatus=0) bt
+    </select>
+    <select id="findCompanyBill"
+    parameterType="String"
+    resultType="Map">
+    SELECT bcse.sendcount,bcr.receivecount,bcsi.signaturecount,bcses.sendsccount,bcrr.receivercfcount,bcsis.signaturesigcount
+	FROM
+	(SELECT COUNT(*) AS sendcount FROM bill_of_lading AS b,company AS c WHERE b.sendCompanyId = #{id} AND b.scfAuditResult = 1) bcse,
+	(SELECT COUNT(*) AS receivecount FROM bill_of_lading AS b,company AS c WHERE b.receiveCompanyId = #{id} AND b.rcfAuditResult = 1) bcr,
+	(SELECT COUNT(*) AS signaturecount FROM bill_of_lading AS b,company AS c WHERE b.signatureCompanyId = #{id} AND b.signatureAuditResult = 1) bcsi,
+	(SELECT COUNT(*) AS sendsccount FROM bill_of_lading AS b,company AS c WHERE b.sendCompanyId = #{id} AND b.scAuditStatus = 0) bcses,
+	(SELECT COUNT(*) AS receivercfcount FROM bill_of_lading AS b,company AS c WHERE b.receiveCompanyId = #{id} AND b.rcAuditStatus = 0) bcrr,
+	(SELECT COUNT(*) AS signaturesigcount FROM bill_of_lading AS b,company AS c WHERE b.signatureCompanyId = #{id} AND b.signatureAuditStatus = 0) bcsis
+    </select>
+</mapper>

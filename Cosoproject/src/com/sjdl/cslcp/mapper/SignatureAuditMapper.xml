@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.SignatureAuditMapper">
+	<!-- 根据账号account查询对应用户的基本信息 -->
+	<select id="findpersoninfobyacccount" parameterType="String" resultType="map">
+		select a.id,a.name,c.name AS sendaddress
+		from account as a,company as c
+		where account=#{account} AND c.id=a.companyId
+	</select>
+	<!-- 查询属于该公司的提单并且签章审核状态为0 -->
+	<select id="findallrecording" parameterType="Map" resultType="Map">	
+		select bl.id,blNo,bl.sendCompanyId AS sendCompany,c1.name AS sendCompanyId ,c2.name AS receiveCompanyId,c3.name AS signatureCompanyId,p.name,bl.billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,scfAuditUserAccount,
+		scfAuditUserName,scfAuditUserDay,signatureAuditStatus,signatureAuditResult,signatureAuditOpinion,
+		signatureAuditUserAccount,signatureAuditUserName,signatureAuditUserDay,createUserAccount,
+		bl.createUserName,createTime,modifierUserAccount,modifierUserName,modifyTime,bl.isDel,sendBillDate,
+		p.sendPrice,
+		billLogoName,billImageName,original,copy,c1.`name`as companyname
+		FROM bill_of_lading as bl,company as c1,company as c2,company as c3,port as p
+		where signatureAuditStatus!=1
+		AND signatureCompanyId=#{cid}
+		AND bl.sendCompanyId=c1.id
+		AND bl.receiveCompanyId=c2.id
+		AND bl.signatureCompanyId=c3.id
+		AND bl.portOfLoading=p.id
+		AND billStatus=0
+	</select>
+	<!-- 查看单个提单详情 -->
+	<select id="findrecordingbyblNo" parameterType="String" resultType="map">
+		SELECT bl.id,blNo,c1.name AS sendCompanyId ,c2.name AS receiveCompanyId,c3.name AS signatureCompanyId,p2.name,bl.billStatus,shipper,
+		consignee,notifyParty,placeOfreceipt,vessel,portOfLoading,portOfTransshipment,
+		PortOfDischarge,PlaceOfDelivery,freightCharges,NoOfOriginal,declared,voyageNo,
+		preCarriageBy,placeAndDate,totalNumber,finalDestination,fordelivery,typeOfMovement,
+		rcAuditStatus,rcfAuditResult,rcfAuditOpinion,rcfAuditUserAccount,rcfAuditUserName,
+		rcfAuditUserDay,scAuditStatus,scfAuditResult,scfAuditOpinion,scfAuditUserAccount,
+		scfAuditUserName,scfAuditUserDay,signatureAuditStatus,signatureAuditResult,signatureAuditOpinion,
+		signatureAuditUserAccount,signatureAuditUserName,signatureAuditUserDay,createUserAccount,
+		bl.createUserName,createTime,modifierUserAccount,modifierUserName,modifyTime,bl.isDel,sendBillDate,
+		p2.sendPrice,
+		billLogoName,billImageName,original,copy
+		FROM bill_of_lading as bl,company as c1,company as c2,company as c3,port as p2
+		WHERE blNo=#{blNo}
+		AND bl.sendCompanyId=c1.id
+		AND bl.receiveCompanyId=c2.id
+		AND bl.signatureCompanyId=c3.id
+		AND p2.id=portOfLoading
+	</select>
+	<!-- 签章方通过提单 -->
+	<update id="siapply" parameterType="Map">
+		update bill_of_lading
+		set signatureAuditStatus=1,signatureAuditResult=1,modifierUserAccount=#{modifierUserAccount},
+			modifierUserName=#{modifierUserName},modifyTime=CURRENT_TIMESTAMP
+		where blNo=#{blNo}
+	</update>
+	<!-- 签章方不通过提单 -->
+	<update id="siunapply" parameterType="Map">
+		update bill_of_lading
+		set signatureAuditStatus=2,signatureAuditResult=0,modifierUserAccount=#{modifierUserAccount},
+			modifierUserName=#{modifierUserName},signatureAuditOpinion=#{signatureAuditOpinion},
+			modifyTime=CURRENT_TIMESTAMP,
+			rcAuditStatus=0,scAuditStatus=0
+		where blNo=#{blNo}
+	</update>
+	<!-- 签章方修改提单信息 -->
+	<update id="simodify" parameterType="map">
+	  	
+	</update>
+</mapper>

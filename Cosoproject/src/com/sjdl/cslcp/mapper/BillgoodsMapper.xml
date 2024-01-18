@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sjdl.cslcp.mapper.BillgoodsMapper">
+ 	<!-- 根据提单id查询相关货物信息 -->
+ 	<select id="findBillgoodsByblid" resultType="Map" parameterType="Integer">
+ 		SELECT id,blId,MarksAndNos,NoAndKindOfPackages,DescriptionOfgoods,GrossWeight,Measurement 
+ 		FROM bill_goods WHERE blId = #{blId}
+ 	</select>
+ 
+   <!-- 查询全部货物信息 -->
+  	<select id="findBillgoods" resultType="Map">	
+  		SELECT id,blId,MarksAndNos,NoAndKindOfPackages,DescriptionOfgoods,GrossWeight,Measurement 
+ 		FROM bill_goods
+ 		<where>
+ 		<if test="blId !=''">
+ 		       AND blId = #{blId}
+ 		</if>
+ 		<if test="MarksAndNos !=''">
+ 		       AND MarksAndNos = #{MarksAndNos}
+ 		</if>
+ 		<if test="NoAndKindOfPackages !=''">
+ 		       AND NoAndKindOfPackages = #{NoAndKindOfPackages}
+ 		</if>
+ 		<if test="DescriptionOfgoods !=''">
+ 		       AND DescriptionOfgoods = #{DescriptionOfgoods}
+ 		</if>
+ 		<if test="GrossWeight !=''">
+ 		       AND GrossWeight = #{GrossWeight}
+ 		</if>
+ 		<if test="Measurement !=''">
+ 		       AND Measurement = #{Measurement}
+ 		</if>
+ 		</where>
+ 	</select>
+ 		
+ 	<!-- 根据货物id删除 -->
+ 	<delete id="deleteBillgoods" parameterType="Integer">
+ 		DELETE FROM bill_goods WHERE blId = #{blId}
+ 	</delete>
+ 
+ 	<!-- 根据提单id修改货物信息 -->
+ 	<update id="updateBillgoods" parameterType="Map">
+ 		UPDATE bill_goods SET MarksAndNos = #{MarksAndNos},NoAndKindOfPackages = #{NoAndKindOfPackages},
+ 		DescriptionOfgoods = #{DescriptionOfgoods},GrossWeight = #{GrossWeight},Measurement = #{Measurement}
+ 		WHERE blId = #{blId}
+ 	</update>
+ 
+ 
+ 	<!-- 增加相关货物信息 -->
+ 	<insert id="insertBillgoods" parameterType="Map">
+ 		INSERT INTO bill_goods(blId,MarksAndNos,NoAndKindOfPackages,DescriptionOfgoods,GrossWeight,Measurement)
+ 		VALUES (#{blId},#{MarksAndNos},#{NoAndKindOfPackages},#{DescriptionOfgoods},#{GrossWeight},#{Measurement})
+ 	</insert>
+</mapper>

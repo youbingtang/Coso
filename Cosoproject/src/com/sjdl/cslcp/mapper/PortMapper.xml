@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sjdl.cslcp.mapper.PortMapper">
+
+	<!-- 分页查询 -->
+	<select id="findAllPort"
+		resultType="Map">
+		SELECT p.id ,p.isDel,p.name,p.eName,c.name AS country,a.name AS sheng,b.name city ,p.sendPrice 
+		from PORT p,address a ,address b,address c WHERE p.provinceId=a.id AND p.cityId= b.id and p.isDel=0 and p.countryId=c.id
+	</select>
+	<!-- 删除操作 -->
+	<delete id="del" parameterType="int">
+		UPDATE port
+		SET 
+			isDel=ABS(isDel-1)
+		WHERE id=#{id}	
+	</delete>
+	<!-- 修改操作 -->
+	<update id="edit" >
+		UPDATE port
+		SET 
+			name=#{name},
+			ename=#{ename},
+			sendPrice=#{sendPrice}
+		WHERE id=#{id}		
+	</update>
+	<!-- 添加 -->
+	<insert id="insertPort" parameterType="Map">
+		INSERT INTO port(name,ename,countryId,provinceId,cityId,longitude,latitude,sendPrice,createDate,isDel)
+		VALUES (#{name},#{ename},#{countryId},#{provinceId},#{cityId},#{longitude},#{latitude},#{sendPrice},#{createDate},0)
+	</insert>
+	<select id="findCountry"
+		resultType="Map">
+		select distinct a.name,a.id from address a, PORT p WHERE p.countryId=a.id
+	</select>
+	<select id="findProvince"
+		resultType="Map">
+		SELECT distinct a.name ,a.id FROM address a where a.pid=#{pid2}
+	</select>
+	<select id="findCity"
+		resultType="Map">
+		SELECT distinct b.name ,b.id FROM address b where b.pid=#{pid3}
+	</select>
+	
+		
+</mapper>
